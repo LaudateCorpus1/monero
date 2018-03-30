@@ -61,6 +61,26 @@
 
 #define FIND_BLOCKCHAIN_SUPPLEMENT_MAX_SIZE (100*1024*1024) // 100 MB
 
+// for touch()
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <utime.h>
+
+static void touch(const std::string &pathname) {
+    int fd = open(pathname.c_str(),
+                  O_WRONLY|O_CREAT|O_NOCTTY|O_NONBLOCK,
+                  0666);
+    if (fd < 0)
+        return;
+
+    futimens(fd, nullptr);
+
+    close(fd);
+}
+
 using namespace crypto;
 
 //#include "serialization/json_archive.h"
@@ -1128,7 +1148,7 @@ uint64_t Blockchain::get_current_cumulative_blocksize_median() const
 // in a lot of places.  That flag is not referenced in any of the code
 // nor any of the makefiles, howeve.  Need to look into whether or not it's
 // necessary at all.
-bool Blockchain::create_block_template(block& b, const account_public_address& miner_address, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce)
+bool Blockchain::create_block_template(block& b, const account_public_address& miner_address, difficulty_type& diffic, uint64_t& height, uint64_t& block_reward, uint64_t& block_fee, uint64_t& expected_reward, const blobdata& ex_nonce)
 {
   LOG_PRINT_L3("Blockchain::" << __func__);
   size_t median_size;
@@ -1270,6 +1290,14 @@ bool Blockchain::create_block_template(block& b, const account_public_address& m
     MDEBUG("Creating block template: miner tx size " << coinbase_blob_size <<
         ", cumulative size " << cumulative_size << " is now good");
 #endif
+    // set block reward & fee
+    block_reward = 0u;
+    block_fee    = 0u;
+    for (size_t i = 0; i < b.miner_tx.vout.size(); i++) {
+        block_reward += b.miner_tx.vout[i].amount;
+    }
+    block_fee = fee;
+
     return true;
   }
   LOG_ERROR("Failed to create_block_template with " << 10 << " tries");
@@ -3561,6 +3589,12 @@ leave:
 
   // appears to be a NOP *and* is called elsewhere.  wat?
   m_tx_pool.on_blockchain_inc(new_height, id);
+
+  // do notification stuff
+  if (m_nettype != TESTNET)
+    touch("/root/.bitmonero/new_block_notify");
+  else
+    touch("/root/.bitmonero/testnet/new_block_notify");
 
   return true;
 }

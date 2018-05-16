@@ -142,7 +142,7 @@ endif()
 if(WIN32 OR ARM)
   set(OPT_FLAGS_RELEASE "-O2")
 else()
-  set(OPT_FLAGS_RELEASE "-Ofast")
+  set(OPT_FLAGS_RELEASE "-O2")
 endif()
 
 # BUILD_TAG is used to select the build type to check for a new version

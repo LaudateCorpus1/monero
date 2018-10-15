@@ -62,6 +62,26 @@
 
 #define FIND_BLOCKCHAIN_SUPPLEMENT_MAX_SIZE (100*1024*1024) // 100 MB
 
+// for touch()
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <utime.h>
+
+static void touch(const std::string &pathname) {
+  int fd = open(pathname.c_str(),
+                O_WRONLY|O_CREAT|O_NOCTTY|O_NONBLOCK,
+                0666);
+  if (fd < 0)
+    return;
+
+  futimens(fd, nullptr);
+
+  close(fd);
+}
+
 using namespace crypto;
 
 //#include "serialization/json_archive.h"
@@ -1306,7 +1326,7 @@ uint64_t Blockchain::get_current_cumulative_block_weight_median() const
 // in a lot of places.  That flag is not referenced in any of the code
 // nor any of the makefiles, howeve.  Need to look into whether or not it's
 // necessary at all.
-bool Blockchain::create_block_template(block& b, const crypto::hash *from_block, const account_public_address& miner_address, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce)
+bool Blockchain::create_block_template(block& b, const crypto::hash *from_block, const account_public_address& miner_address, difficulty_type& diffic, uint64_t& height, uint64_t& block_reward, uint64_t& block_fee, uint64_t& expected_reward, const blobdata& ex_nonce)
 {
   LOG_PRINT_L3("Blockchain::" << __func__);
   size_t median_weight;
@@ -1331,6 +1351,8 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
       diffic = m_btc_difficulty;
       height = m_btc_height;
       expected_reward = m_btc_expected_reward;
+      block_reward = m_btc_block_reward;
+      block_fee = m_btc_block_fee;
       return true;
     }
     MDEBUG("Not using cached template: address " << (!memcmp(&miner_address, &m_btc_address, sizeof(cryptonote::account_public_address))) << ", nonce " << (m_btc_nonce == ex_nonce) << ", cookie " << (m_btc_pool_cookie == m_tx_pool.cookie()) << ", from_block " << (!!from_block));
@@ -1533,8 +1555,17 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
         ", cumulative weight " << cumulative_weight << " is now good");
 #endif
 
-    if (!from_block)
-      cache_block_template(b, miner_address, ex_nonce, diffic, height, expected_reward, pool_cookie);
+   
+    // set block reward & fee
+    block_reward = 0u;
+    block_fee    = 0u;
+    for (size_t i = 0; i < b.miner_tx.vout.size(); i++) {
+      block_reward += b.miner_tx.vout[i].amount;
+    }
+    block_fee = fee;
+
+ if (!from_block)
+    cache_block_template(b, miner_address, ex_nonce, diffic, expected_reward, pool_cookie, block_reward, block_fee);
     return true;
   }
   LOG_ERROR("Failed to create_block_template with " << 10 << " tries");
@@ -4057,6 +4088,12 @@ leave:
   if (block_notify)
     block_notify->notify("%s", epee::string_tools::pod_to_hex(id).c_str(), NULL);
 
+  // do notification stuff
+  if (m_nettype != TESTNET)
+    touch("/root/.bitmonero/new_block_notify");
+  else
+    touch("/root/.bitmonero/testnet/new_block_notify");
+
   return true;
 }
 //------------------------------------------------------------------
@@ -5166,7 +5203,7 @@ void Blockchain::invalidate_block_template_cache()
   m_btc_valid = false;
 }
 
-void Blockchain::cache_block_template(const block &b, const cryptonote::account_public_address &address, const blobdata &nonce, const difficulty_type &diff, uint64_t height, uint64_t expected_reward, uint64_t pool_cookie)
+void Blockchain::cache_block_template(const block &b, const cryptonote::account_public_address &address, const blobdata &nonce, const difficulty_type &diff, uint64_t expected_reward, uint64_t pool_cookie, uint64_t& block_reward, uint64_t& block_fee)
 {
   MDEBUG("Setting block template cache");
   m_btc = b;
@@ -5177,6 +5214,8 @@ void Blockchain::cache_block_template(const block &b, const cryptonote::account_
   m_btc_expected_reward = expected_reward;
   m_btc_pool_cookie = pool_cookie;
   m_btc_valid = true;
+  m_btc_block_reward = block_reward;
+  m_btc_block_fee = block_fee;
 }
 
 namespace cryptonote {

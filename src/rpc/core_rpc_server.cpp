@@ -1683,8 +1683,13 @@ namespace cryptonote
 
     block b;
     cryptonote::blobdata blob_reserve;
+<<<<<<< HEAD
     size_t reserved_offset;
     if(!req.extra_nonce.empty())
+=======
+    blob_reserve.resize(req.reserve_size, 0);
+    if(!m_core.get_block_template(b, info.address, res.difficulty, res.height, res.block_reward, res.block_fee, res.expected_reward, blob_reserve))
+>>>>>>> 0db2e047... add block_reward and block_fee for rpc get_block_template
     {
       if(!string_tools::parse_hexstr_to_binbuff(req.extra_nonce, blob_reserve))
       {

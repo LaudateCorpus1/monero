@@ -1575,16 +1575,16 @@ namespace cryptonote
     return 0;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool core_rpc_server::get_block_template(const account_public_address &address, const crypto::hash *prev_block, const cryptonote::blobdata &extra_nonce, size_t &reserved_offset, cryptonote::difficulty_type  &difficulty, uint64_t &height, uint64_t &expected_reward, block &b, uint64_t &seed_height, crypto::hash &seed_hash, crypto::hash &next_seed_hash, epee::json_rpc::error &error_resp)
+  bool core_rpc_server::get_block_template(const account_public_address &address, const crypto::hash *prev_block, const cryptonote::blobdata &extra_nonce, size_t &reserved_offset, cryptonote::difficulty_type &difficulty, uint64_t &height, uint64_t &expected_reward, block &b, uint64_t &seed_height, crypto::hash &seed_hash, crypto::hash &next_seed_hash, epee::json_rpc::error &error_resp)
   {
     b = boost::value_initialized<cryptonote::block>();
-    if(!m_core.get_block_template(b, prev_block, address, difficulty, height, expected_reward, extra_nonce))
-    {
-      error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
-      error_resp.message = "Internal error: failed to create block template";
-      LOG_ERROR("Failed to create block template");
-      return false;
-    }
+    // if(!m_core.get_block_template(b, prev_block, address, difficulty, height, expected_reward, extra_nonce))
+    // {
+    //   error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
+    //   error_resp.message = "Internal error: failed to create block template";
+    //   LOG_ERROR("Failed to create block template");
+    //   return false;
+    // }
     blobdata block_blob = t_serializable_object_to_blob(b);
     crypto::public_key tx_pub_key = cryptonote::get_tx_pub_key_from_extra(b.miner_tx);
     if(tx_pub_key == crypto::null_pkey)
@@ -1685,6 +1685,8 @@ namespace cryptonote
     cryptonote::blobdata blob_reserve;
     size_t reserved_offset;
     if(!req.extra_nonce.empty())
+    // blob_reserve.resize(req.reserve_size, 0);
+    // if(!m_core.get_block_template(b, info.address, res.difficulty, res.height, res.expected_reward, blob_reserve , res.block_reward, res.block_fee))
     {
       if(!string_tools::parse_hexstr_to_binbuff(req.extra_nonce, blob_reserve))
       {

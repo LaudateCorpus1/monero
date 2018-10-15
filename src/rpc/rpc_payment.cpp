@@ -137,8 +137,8 @@ namespace cryptonote
       uint64_t new_seed_height;
       crypto::hash new_seed_hash;
       cryptonote::blobdata extra_nonce("\x42\x42\x42\x42", 4);
-      if (!get_block_template(extra_nonce, new_block, new_seed_height, new_seed_hash))
-        return false;
+      // if (!get_block_template(extra_nonce, new_block, new_seed_height, new_seed_hash))
+      //   return false;
       if(!remove_field_from_tx_extra(new_block.miner_tx.extra, typeid(cryptonote::tx_extra_nonce)))
         return false;
       char data[33];

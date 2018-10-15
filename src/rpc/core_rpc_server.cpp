@@ -1685,7 +1685,9 @@ namespace cryptonote
     cryptonote::blobdata blob_reserve;
     size_t reserved_offset;
     if(!req.extra_nonce.empty())
-    {
+    blob_reserve.resize(req.reserve_size, 0);
+
+    if(!m_core.get_block_template(b, req.prev_block.empty() ? NULL : &prev_block, info.address, wdiff, res.height, res.expected_reward, blob_reserve, res.block_reward, res.block_fee))
       if(!string_tools::parse_hexstr_to_binbuff(req.extra_nonce, blob_reserve))
       {
         error_resp.code = CORE_RPC_ERROR_CODE_WRONG_PARAM;

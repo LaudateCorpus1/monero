@@ -46,8 +46,13 @@ namespace cryptonote
 
   struct i_miner_handler
   {
+<<<<<<< HEAD
     virtual bool handle_block_found(block& b, block_verification_context &bvc) = 0;
     virtual bool get_block_template(block& b, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce) = 0;
+=======
+    virtual bool handle_block_found(block& b) = 0;
+    virtual bool get_block_template(block& b, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& block_reward, uint64_t& block_fee, uint64_t& expected_reward, const blobdata& ex_nonce) = 0;
+>>>>>>> 0db2e047... add block_reward and block_fee for rpc get_block_template
   protected:
     ~i_miner_handler(){};
   };

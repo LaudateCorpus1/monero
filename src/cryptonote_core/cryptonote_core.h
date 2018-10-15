@@ -208,8 +208,12 @@ namespace cryptonote
       *
       * @note see Blockchain::create_block_template
       */
+<<<<<<< HEAD
      virtual bool get_block_template(block& b, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce);
      virtual bool get_block_template(block& b, const crypto::hash *prev_block, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce);
+=======
+     virtual bool get_block_template(block& b, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& block_reward, uint64_t& block_fee, uint64_t& expected_reward, const blobdata& ex_nonce);
+>>>>>>> 0db2e047... add block_reward and block_fee for rpc get_block_template
 
      /**
       * @brief called when a transaction is relayed

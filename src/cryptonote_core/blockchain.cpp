@@ -1574,7 +1574,7 @@ if (!from_block)
 //------------------------------------------------------------------
 bool Blockchain::create_block_template(block& b, const account_public_address& miner_address, difficulty_type& diffic, uint64_t& height, uint64_t& block_reward, uint64_t& block_fee, uint64_t& expected_reward, const blobdata& ex_nonce)
 {
-  return create_block_template(b, NULL, miner_address, diffic, height, block_reward, block_fee， expected_reward, ex_nonce);
+  return create_block_template(b, NULL, miner_address, diffic, height, block_reward, block_fee, expected_reward, ex_nonce);
 }
 //------------------------------------------------------------------
 // for an alternate chain, get the timestamps from the main chain to complete

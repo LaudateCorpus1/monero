@@ -1491,6 +1491,6 @@ namespace cryptonote
      * At some point, may be used to push an update to miners
      */
 
-    void Blockchain::cache_block_template(const block &b, const cryptonote::account_public_address &address, const blobdata &nonce, const difficulty_type &diff, uint64_t height, uint64_t expected_reward, uint64_t pool_cookie, uint64_t& block_reward, uint64_t& block_fee);
+    void cache_block_template(const block &b, const cryptonote::account_public_address &address, const blobdata &nonce, const difficulty_type &diff, uint64_t height, uint64_t expected_reward, uint64_t pool_cookie, uint64_t& block_reward, uint64_t& block_fee);
   };
 }  // namespace cryptonote

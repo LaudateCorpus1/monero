@@ -1575,22 +1575,34 @@ namespace cryptonote
     return 0;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool core_rpc_server::get_block_template(const account_public_address &address, const crypto::hash *prev_block, const cryptonote::blobdata &extra_nonce, size_t &reserved_offset, cryptonote::difficulty_type &difficulty, uint64_t &height, uint64_t &expected_reward, block &b, uint64_t &seed_height, crypto::hash &seed_hash, crypto::hash &next_seed_hash, epee::json_rpc::error &error_resp)
+
+
+/*  no known conversion for argument 12 from
+  ‘cryptonote::COMMAND_RPC_ACCESS_INFO::response {aka epee::misc_utils::struct_init<cryptonote::COMMAND_RPC_ACCESS_INFO::response_t>}’ to
+  ‘cryptonote::COMMAND_RPC_GETBLOCKTEMPLATE::response& {aka epee::misc_utils::struct_init<cryptonote::COMMAND_RPC_GETBLOCKTEMPLATE::response_t>&}’*/
+
+
+
+
+
+
+  bool core_rpc_server::get_block_template(const account_public_address &address, const crypto::hash *prev_block, const cryptonote::blobdata &extra_nonce, size_t &reserved_offset, cryptonote::difficulty_type &difficulty, uint64_t &height, uint64_t &expected_reward, block &b, uint64_t &seed_height, crypto::hash &seed_hash, crypto::hash &next_seed_hash, COMMAND_RPC_GETBLOCKTEMPLATE::response& res, epee::json_rpc::error &error_resp)
   {
     b = boost::value_initialized<cryptonote::block>();
-    // if(!m_core.get_block_template(b, prev_block, address, difficulty, height, expected_reward, extra_nonce))
-    // {
-    //   error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
-    //   error_resp.message = "Internal error: failed to create block template";
-    //   LOG_ERROR("Failed to create block template");
-    //   return false;
-    // }
+    if(!m_core.get_block_template(b, prev_block, address, difficulty, height, expected_reward, extra_nonce, res.block_reward, res.block_fee))
+    {
+      error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
+      error_resp.message = "Internal error: failed to create block template....";
+      LOG_ERROR("Failed to create block template");
+      return false;
+    }
+
     blobdata block_blob = t_serializable_object_to_blob(b);
     crypto::public_key tx_pub_key = cryptonote::get_tx_pub_key_from_extra(b.miner_tx);
     if(tx_pub_key == crypto::null_pkey)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
-      error_resp.message = "Internal error: failed to create block template";
+      error_resp.message = "Internal error: failed to create block template...";
       LOG_ERROR("Failed to get tx pub key in coinbase extra");
       return false;
     }
@@ -1616,7 +1628,7 @@ namespace cryptonote
     if(!reserved_offset)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
-      error_resp.message = "Internal error: failed to create block template";
+      error_resp.message = "Internal error: failed to create block template..";
       LOG_ERROR("Failed to find tx pub key in blockblob");
       return false;
     }
@@ -1624,7 +1636,7 @@ namespace cryptonote
     if(reserved_offset + extra_nonce.size() > block_blob.size())
     {
       error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
-      error_resp.message = "Internal error: failed to create block template";
+      error_resp.message = "Internal error: failed to create block template.";
       LOG_ERROR("Failed to calculate offset for ");
       return false;
     }
@@ -1685,8 +1697,8 @@ namespace cryptonote
     cryptonote::blobdata blob_reserve;
     size_t reserved_offset;
     if(!req.extra_nonce.empty())
-    // blob_reserve.resize(req.reserve_size, 0);
-    // if(!m_core.get_block_template(b, info.address, res.difficulty, res.height, res.expected_reward, blob_reserve , res.block_reward, res.block_fee))
+//     blob_reserve.resize(req.reserve_size, 0);
+//     if(!m_core.get_block_template(b, info.address, res.difficulty, res.height, res.expected_reward, blob_reserve , res.block_reward, res.block_fee))
     {
       if(!string_tools::parse_hexstr_to_binbuff(req.extra_nonce, blob_reserve))
       {
@@ -1710,7 +1722,7 @@ namespace cryptonote
     }
     uint64_t seed_height;
     crypto::hash seed_hash, next_seed_hash;
-    if (!get_block_template(info.address, req.prev_block.empty() ? NULL : &prev_block, blob_reserve, reserved_offset, wdiff, res.height, res.expected_reward, b, res.seed_height, seed_hash, next_seed_hash, error_resp))
+    if (!get_block_template(info.address, req.prev_block.empty() ? NULL : &prev_block, blob_reserve, reserved_offset, wdiff, res.height, res.expected_reward, b, res.seed_height, seed_hash, next_seed_hash, res,error_resp))
       return false;
     if (b.major_version >= RX_BLOCK_VERSION)
     {
@@ -2975,8 +2987,8 @@ namespace cryptonote
       cryptonote::difficulty_type difficulty;
       uint64_t height, expected_reward;
       size_t reserved_offset;
-      if (!get_block_template(m_rpc_payment->get_payment_address(), NULL, extra_nonce, reserved_offset, difficulty, height, expected_reward, b, seed_height, seed_hash, next_seed_hash, error_resp))
-        return false;
+//      if (!core_rpc_server::get_block_template(m_rpc_payment->get_payment_address(), NULL, extra_nonce, reserved_offset, difficulty, height, expected_reward, b, seed_height, seed_hash, next_seed_hash, res, error_resp))
+//        return false;
       return true;
     }, hashing_blob, res.seed_height, seed_hash, top_hash, res.diff, res.credits_per_hash_found, res.credits, res.cookie))
     {
